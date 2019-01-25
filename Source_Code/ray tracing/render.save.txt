@@ -1,0 +1,362 @@
+//============================================================
+//  File:       render.cpp
+//  Purpose:    Uses rendering to generate image of scene. 
+//  Author:     John Gauch
+//  Date:       Spring 2013
+//============================================================
+#include "Camera.h"
+#include "Scene.h"
+#include "Shape.h"
+
+#ifdef MAC
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
+#include "shading.cpp"
+
+//---------------------------------------
+// Init function for OpenGL
+//---------------------------------------
+void init()
+{
+   // Initialize OpenGL
+   glClearColor(0.0, 0.0, 0.0, 1.0);
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   float radius = 2;
+   glOrtho(-radius, radius, -radius, radius, -radius, radius);
+   glEnable(GL_DEPTH_TEST);
+   glShadeModel(GL_SMOOTH);
+   glEnable(GL_NORMALIZE);
+
+   // Initialize light source
+   init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
+   init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
+   init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
+
+}
+
+//---------------------------------------
+// Display callback for OpenGL
+//---------------------------------------
+void display()
+{
+   // Incrementally rotate objects
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+   // glRotatef(xangle, 1.0, 0.0, 0.0);
+   // glRotatef(yangle, 0.0, 1.0, 0.0);
+   // glRotatef(zangle, 0.0, 0.0, 1.0);
+
+   // Draw geometric objects
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.8, 0.6, 0.4);
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.8, 0.4, 0.6);
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.6, 0.8, 0.4);
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.6, 0.4, 0.8);
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.4, 0.8, 0.6);
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.4, 0.6, 0.8);
+   glFlush();
+}
+
+//---------------------------------------
+// Main program
+//---------------------------------------
+int main(int argc, char *argv[])
+{
+   glutInit(&argc, argv);
+   glutInitWindowSize(500, 500);
+   glutInitWindowPosition(250, 250);
+   glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
+   glutCreateWindow("John's Scene Rendering Program");
+   glutDisplayFunc(display);
+   init();
+   glutMainLoop();
+   return 0;
+}
+
+#ifdef JOHN
+
+//============================================================
+//  File:       ray_trace.cpp
+//  Purpose:    Uses ray tracing to generate image of scene.
+//  Author:     John Gauch
+//  Date:       Spring 2013
+//============================================================
+#include "Camera.h"
+#include "Scene.h"
+#include "Shape.h"
+
+#ifdef MAC
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
+// Global variables
+#define XDIM 1024
+#define YDIM 1024
+unsigned char image[YDIM][XDIM][3];
+string infile = "";
+bool raytrace = true;
+
+//============================================================
+bool phong(Point3 light, Point3 surface, Vector3 normal, Vector3 viewer, double shine,
+   double & distance, double & diffuse, double & specular, Vector3 & reflect)
+{
+   // Calculate diffuse term
+   Vector3 vlight = light - surface;
+   distance = vlight.length();
+   vlight.normalize();
+   diffuse = vlight * normal; 
+   if (diffuse < 0) 
+   {
+      diffuse = 0;
+      specular = 0;
+      return false;
+   }
+
+   // Calculate specular term
+   reflect = 2 * diffuse * normal - vlight;
+   reflect.normalize();
+   specular = viewer * reflect;  
+   if (specular < 0) 
+      specular = 0;
+   else if (shine > 1)
+      specular = pow(specular, shine);
+
+   // Calculate reflected ray
+   reflect = 2 * (viewer * normal) * normal - viewer;
+   return true;
+}
+
+//============================================================
+void ray_trace(string filename)
+{
+   // Read scene file
+   Scene scene;
+   scene.readScene(filename);
+
+   // Define Camara to/from World transformations 
+   Camera c = scene.camera;
+   Matrix4 C2W = c.calculate_C2W();
+   Matrix4 W2C = c.calculate_W2C();
+
+   // Trace rays to create output image
+   for (int sy=0; sy<YDIM; sy++)
+   for (int sx=0; sx<XDIM; sx++)
+   {
+      // Calculate pixel location in Camera and World coordinates
+      image[sy][sx][0] = image[sy][sx][1] = image[sy][sx][2] = 0;
+      Point3 camera_pixel(2*(sx+0.5)/XDIM-1, 2*(sy+0.5)/YDIM-1, -1);
+      Point3 world_pixel = C2W * camera_pixel;
+     
+      // Define ray from eye to screen pixel
+      Point3 ray_pt = c.get_eye();
+      Vector3 ray_dir = world_pixel - ray_pt;
+      ray_dir.normalize();
+
+      // Intersect ray with all objects
+      Point3 hit_pt;
+      Vector3 hit_normal;
+      Object hit_obj;
+      if (scene.intersectObjects(ray_pt, ray_dir, 
+         hit_pt, hit_normal, hit_obj))
+      {
+         // Initialize pixel color
+         Vector3 ambient_color = hit_obj.get_ambient();
+         Vector3 diffuse_color = hit_obj.get_diffuse();
+         Vector3 specular_color = hit_obj.get_specular();
+         double shine = hit_obj.get_shine();
+         Vector3 color(0,0,0);
+
+         // Loop over all lights
+         for (unsigned int i=0; i<scene.vlight.size(); i++)
+         {
+            Light light = scene.vlight[i];
+            Point3 light_pos = light.get_position();
+            Vector3 light_color = light.get_color();
+            Vector3 function = light.get_function();
+            double distance = 0;
+            double diffuse = 0;
+            double specular = 0;
+            Vector3 reflect(0,0,0);
+   
+            // Perform Phong shading
+            if (phong(light_pos, hit_pt, hit_normal, -ray_dir, shine, 
+               distance, diffuse, specular, reflect))
+            {
+               double attenuation = 1/(function[0] + 
+                                       function[1] * distance + 
+                                       function[2] * distance * distance);
+               diffuse *= attenuation;
+               specular *= attenuation;
+               for (int c=0; c<3; c++)
+                  color[c] += (light_color[c]
+                           * (diffuse_color[c] * diffuse 
+                           + specular_color[c] * specular));
+            }
+         }
+
+         // Save pixel color in image
+         for (int c=0; c<3; c++)
+         {
+            if (color[c] > 1) color[c] = 1;
+            image[sy][sx][c] = (int)(255 * color[c]);
+         }
+      }
+   }
+
+   // Draw pixels on screen
+   glDrawPixels(XDIM, YDIM, GL_RGB, GL_UNSIGNED_BYTE, image);
+}
+
+//============================================================
+void displaySubgraph(Scene & scene, string name)
+{
+   // Display objects in scene
+   for (unsigned int i=0; i<scene.vsubgraph.size(); i++)
+   if (scene.vsubgraph[i].name == name)
+   {
+      // Loop over trans vector
+      for (unsigned int j=0; j<scene.vsubgraph[i].vtrans.size(); j++)
+      {
+         // Display subgraph
+         Trans trans = scene.vsubgraph[i].vtrans[j];
+         if (trans.subgraphName.length() > 0)
+         {
+            GLfloat matrix[16];
+            for (int c=0; c<4; c++)
+            for (int r=0; r<4; r++)
+            {
+               matrix[trans.modelview.index(r,c)] = trans.modelview(r,c);
+               cout << trans.modelview.index(r,c) << " " << trans.modelview(r,c) << endl;
+            }
+            glPushMatrix();
+            glMultMatrixf(matrix);
+            displaySubgraph(scene, trans.subgraphName);
+            glPopMatrix();
+         }
+
+         // Display object
+         else if (trans.object.shape.length() > 0)
+         {
+#ifdef LATER
+            // Initialize material properties
+            GLfloat ambient[4] = {trans.object.ambient[0],
+                                  trans.object.ambient[1],
+                                  trans.object.ambient[2], 1};
+            GLfloat diffuse[4] = {trans.object.diffuse[0],
+                                  trans.object.diffuse[1],
+                                  trans.object.diffuse[2], 1};
+            GLfloat specular[4] = {trans.object.specular[0],
+                                  trans.object.specular[1],
+                                  trans.object.specular[2], 1};
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+            glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, trans.object.shine);
+#endif
+
+            // Apply transformation
+            GLfloat matrix[16];
+            for (int c=0; c<4; c++)
+            for (int r=0; r<4; r++)
+            {
+               matrix[trans.modelview.index(r,c)] = trans.modelview(r,c);
+               cout << trans.modelview.index(r,c) << " " << trans.modelview(r,c) << endl;
+            }
+            glPushMatrix();
+            glMultMatrixf(matrix);
+
+            // Display object
+            cout << trans.object.shape << endl;
+            if (trans.object.shape == "sphere")
+               glutSolidSphere(0.5, 20, 20);
+            else if (trans.object.shape == "cube")
+               glutSolidCube(1.0);
+            else if (trans.object.shape == "cone")
+               glutSolidCone(0.5, 1.0, 20, 20);
+            else if (trans.object.shape == "cylinder")
+               glutWireSphere(0.5, 20, 20);
+            else
+               cout << "Object " << trans.object.shape << " not found\n";
+            glPopMatrix();
+         }
+      } 
+   }
+}
+
+//============================================================
+void display(string filename)
+{
+   // Read scene file
+   Scene scene;
+   scene.readScene(filename);
+
+#ifdef LATER
+   // Initialize lights
+   glShadeModel(GL_SMOOTH);
+   glEnable(GL_NORMALIZE);
+
+   // Light variables
+   float light_position[] = { -3, 0, 3, 0.0 };
+   float light_color[] = { 0.5, 0.5, 0.5, 1.0 };
+   int light_source = GL_LIGHT0;
+
+   // Initialize light source
+   glEnable(GL_LIGHTING);
+   glEnable(light_source);
+   glLightfv(light_source, GL_POSITION, light_position);
+   glLightfv(light_source, GL_AMBIENT, light_color);
+   glLightfv(light_source, GL_DIFFUSE, light_color);
+   glLightfv(light_source, GL_SPECULAR, light_color);
+   glLightf(light_source, GL_CONSTANT_ATTENUATION, 1.0);
+   glLightf(light_source, GL_LINEAR_ATTENUATION, 0.0);
+   glLightf(light_source, GL_QUADRATIC_ATTENUATION, 0.0);
+   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+#endif
+
+   // Display objects
+   displaySubgraph(scene, "root");
+}
+
+//============================================================
+void display()
+{
+   glClear(GL_COLOR_BUFFER_BIT);
+   if (raytrace)
+      ray_trace(infile);
+   else
+      display(infile);
+   glFlush();
+}
+
+//============================================================
+int main(int argc, char *argv[])
+{
+   // Create OpenGL window
+   infile = string(argv[1]);
+   glutInit(&argc, argv);
+   glutInitWindowSize(XDIM, YDIM);
+   glutInitWindowPosition(0, 0);
+   glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+   glutCreateWindow("John's Ray Tracing Program");
+#ifdef LATER
+   glClearColor(0.1, 0.1, 0.1, 1.0);
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+   glEnable(GL_DEPTH_TEST);
+#endif
+
+   // Specify callback function
+   glutDisplayFunc(display);
+   glutMainLoop();
+   return 0;
+}
+
+#endif

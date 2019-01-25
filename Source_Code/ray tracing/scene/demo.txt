@@ -1,0 +1,48 @@
+../ray_trace matrix_test.sc
+../ray_trace simple.sc
+../ray_trace test_spotlight.sc
+../ray_trace mitz_adam_stereo.sc
+../ray_trace mchugh_lauren_kirby.sc
+../ray_trace test_reflection.sc
+../ray_trace kirkpatrick_mcneill.sc
+../ray_trace garner_jim.sc
+# ../ray_trace test_refraction.sc
+../ray_trace test_shadows.sc
+# ../ray_trace miller_benjamin_chromegnome.sc
+../ray_trace hines_christian.sc
+../ray_trace schoewe_andrew_mouse.sc
+# ../ray_trace test_texture.sc
+# ../ray_trace mah_earl_hands.sc
+../ray_trace bujans_raquel.sc
+../ray_trace barnett_david.sc
+../ray_trace thrall_bryan_hand.sc
+../ray_trace hines_christopher.sc
+# ../ray_trace chiu_andrew_nightdriving.sc
+../ray_trace turntable.sc
+# ../ray_trace mcgurther_mark_chairs.sc
+../ray_trace neely_chris_sailboat.sc
+# ../ray_trace brian_cannon.sc
+../ray_trace tyson_eric_pencils.sc
+# ../ray_trace sudarsanam_nisha_undertheshade.sc
+../ray_trace test_pathtrace.sc
+../ray_trace bender.sc
+# ../ray_trace dudley_nathan_train.sc
+../ray_trace iyun_olubanji_pool.sc
+../ray_trace packman_bryan_cloud.sc
+../ray_trace all_objects.sc
+../ray_trace mcnally_patrick_shrine.sc
+../ray_trace yeung_nga_doraemon.sc
+../ray_trace dobbs_kevin_stopped_clock.sc
+# ../ray_trace rubix_cubes.sc
+../ray_trace amborn_kyle.sc
+../ray_trace zhu_suan.sc
+../ray_trace niebruegge_bill.sc
+../ray_trace windmill.sc
+# ../ray_trace piano.sc
+../ray_trace oneal_patrick.sc
+../ray_trace wheel.sc
+../ray_trace foostable.sc
+../ray_trace flowers.sc
+../ray_trace basketball.sc
+../ray_trace go_board.sc
+../ray_trace chess_master.sc
