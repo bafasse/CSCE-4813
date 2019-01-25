@@ -1,4 +1,4 @@
-This is a folder contains source doe from my professor
+This is a folder contains source code from my professor
 
 Install instructions:
 
