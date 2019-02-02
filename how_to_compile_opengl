@@ -1,0 +1,1 @@
+g++ program.cpp -o program -lGL -lGLU -lglut
