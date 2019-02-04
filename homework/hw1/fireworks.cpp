@@ -1,17 +1,19 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <random>
+#include <ctime>
 #ifdef MAC
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+using namespace std;
 
 // Window Borders
 GLint SCREEN_WIDTH = 500;
 GLint SCREEN_HEIGHT = 500;
-GLint SCREEN_DEPTH = 16;
+GLint SCREEN_DEPTH = 500;
 
 //---------------------------------------
 // Calculate random value between [-R..R]
@@ -21,31 +23,23 @@ float myrand(float R)
    return (2 * R * rand()) / RAND_MAX - R;
 }
 
-void firework(float angle1) 
+void firework(float x1, float y1, float z1) 
 {
-    // srand(time(NULL));
-    // Choosing colors
-    int red = rand() % 255;
-    int green = rand() % 255;
-    int blue = rand() % 255;
-
-    int x1 = myrand(SCREEN_WIDTH);
-    int y1 = myrand(SCREEN_HEIGHT);
-    int z1 = myrand(SCREEN_DEPTH);
-
+    // Choosing colors w/ floats from 0-1
+    float red = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float green = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float blue = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     glColor3f(red,green,blue);
-    glBegin(GL_LINES);
+
     
-    int x2,y2,z2;
-    for(int i = 0; i < rand() % (200 - 150 + 1) + 150; ++i){
-        glVertex3f(0,0,0);
-        x2 = rand() % 2000 - 1000;
-        y2 = rand() % 2000 - 1000;
-        z2 = rand() % 2000 - 1000;
+    for(int j = 0; j < rand() % (75 - 50 + 1) + 100; ++j) 
+    {        
+        glVertex3f(x1,y1,z1);
+        float x2 = myrand(50) + x1;
+        float y2 =myrand(70) + y1;
+        float z2 = myrand(80) + z1;
         glVertex3f(x2,y2,z2);
     }
-    glEnd();
-
 }
 //---------------------------------------
 // Init function for OpenGL
@@ -65,21 +59,34 @@ void init()
 //---------------------------------------
 void display()
 {
-   // Draw tree
    glClear(GL_COLOR_BUFFER_BIT);
    glColor3f(0.0, 1.0, 0.0);
    glBegin(GL_LINES);
-   firework(1.5);
+   float x1, y1, z1;
+//    float x1;
+//    float y1;
+//    float z1;
+//    float x1 = myrand(10);
+//    float y1 = myrand(20);
+//    float z1 = myrand(50);
+   for (int i = 0; i < rand() % (8 - 5 + 1) + 5; ++i)
+   {
+       x1 = myrand(100);
+       y1 = myrand(100);
+       z1 = myrand(100);
+       firework(x1,y1,z1);
+   }
    glEnd();
    glFlush();
 }
 
 int main(int argc, char *argv[]) 
 {
+    srand(time(NULL));
     glutInit(&argc, argv);
     glutInitWindowSize(500,500);
-    glutInitWindowPosition(100, 100);
-    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+    glutInitWindowPosition(0,0);
+    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
     glutCreateWindow("Fireworks");
     glutDisplayFunc(display);
     // glutIdleFunc(idle);
