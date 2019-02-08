@@ -23,7 +23,7 @@ float myrand(float R)
    return (2 * R * rand()) / RAND_MAX - R;
 }
 
-void firework(float x1, float y1, float z1) 
+void firework(float x1, float y1, float z1, float d) 
 {
     // Choosing colors w/ floats from 0-1
     float red = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -35,9 +35,12 @@ void firework(float x1, float y1, float z1)
     for(int j = 0; j < rand() % (75 - 50 + 1) + 100; ++j) 
     {        
         glVertex3f(x1,y1,z1);
-        float x2 = myrand(50) + x1;
+        float x2 = myrand(90) + x1;
         float y2 =myrand(70) + y1;
         float z2 = myrand(80) + z1;
+        // float x2 = (x1/d)*20 + x1;
+        // float y2 = (y1/d)*20 + y1;
+        // float z2 = (z1/d)*20 + z1;
         glVertex3f(x2,y2,z2);
     }
 }
@@ -62,7 +65,7 @@ void display()
    glClear(GL_COLOR_BUFFER_BIT);
    glColor3f(0.0, 1.0, 0.0);
    glBegin(GL_LINES);
-   float x1, y1, z1;
+   float x1, y1, z1, d;
 //    float x1;
 //    float y1;
 //    float z1;
@@ -74,7 +77,8 @@ void display()
        x1 = myrand(100);
        y1 = myrand(100);
        z1 = myrand(100);
-       firework(x1,y1,z1);
+       d = sqrt(pow(x1,2) + pow(y1,2) - pow(z1,2));
+       firework(x1,y1,z1,d);
    }
    glEnd();
    glFlush();
