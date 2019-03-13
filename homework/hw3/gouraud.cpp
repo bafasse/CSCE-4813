@@ -29,23 +29,29 @@ float G[SIZE + 1][SIZE + 1];
 float B[SIZE + 1][SIZE + 1];
 
 // Light Position
-float lx[SIZE + 1][SIZE + 1];
-float ly[SIZE + 1][SIZE + 1];
-float lz[SIZE + 1][SIZE + 1];
+float lx = 0.5;
+float ly = -0.5;
+float lz = 1;
 
-// Light for diffuse
-float Lx[SIZE + 1][SIZE + 1];
-float Ly[SIZE + 1][SIZE + 1];
-float Lz[SIZE + 1][SIZE + 1];
-
-#define STEP 0.1
-
-#include "shading.cpp"
 
 float myrand(float R)
 {
    return (2 * R * rand()) / RAND_MAX - R;
 }
+
+
+float Mr = myrand(1);
+float Mg = myrand(1);
+float Mb = myrand(1);
+
+
+float Lr = myrand(1);
+float Lg = myrand(1);
+float Lb = myrand(1);
+
+#define STEP 0.1
+
+
 
 
 void split(int xlow, int xhigh, int ylow, int yhigh, float radius)
@@ -154,13 +160,14 @@ void init()
       glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
       glEnable(GL_DEPTH_TEST);
 
-      // Initialize smooth shading
+      // OpenGL uses Phong shading
+      // Come up with a way to only use Gouraud Shading
       // Put following inside init() function
-      glShadeModel(GL_SMOOTH);
-      glEnable(GL_NORMALIZE);
-      init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
-      init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
-      init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
+      // glShadeModel(GL_SMOOTH);
+      // glEnable(GL_NORMALIZE);
+      // init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
+      // init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
+      // init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
 
 
       // Initialize surface
@@ -180,9 +187,35 @@ void display()
    glRotatef(xangle, 1.0, 0.0, 0.0);
    glRotatef(yangle, 0.0, 1.0, 0.0);
    glRotatef(zangle, 0.0, 0.0, 1.0);
-   // Ka = Ks = 0, Kd = Kp = 1
-   // init_material(0, 1, 0, 100 * 1, 0.8, 0.6, 0.4);
 
+   for (int i = 0; i < SIZE; ++i)
+   {
+      for (int j = 0; j < SIZE; ++j)
+      {
+         float Lx = (lx - Px[i][j]);
+         float Ly = ly - Py[i][j];
+         float Lz = lz - Pz[i][j];
+         float length = sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+
+         Lx = Lx / length;
+         Ly = Ly / length;
+         Lz = Lz / length;
+
+         // Dot product of N, L
+         float dot = (Lx * Nx[i][j]) + (Ly * Ny[i][j]) + (Lz * Nz[i][j]);
+
+         // Make M and L hard coded, global vars
+         // Mr, Mg, Mb
+         // Lr, Lg, Lb
+         // R = Mr * Lr * dot
+         // G = Mg * Lg * dot
+         // B = Mb * Lb * dot
+         R[i][j] = Mr * Lr * dot;
+         G[i][j] = Mg * Lg * dot;
+         B[i][j] = Mb * Lb * dot;
+
+      }
+   }
    // nested for loop
    // color then point
    // Draw the surface
@@ -192,19 +225,19 @@ void display()
       for (int j = 0; j < SIZE; ++j)
       {
          glBegin(GL_POLYGON);         	 
-         glNormal3f(Nx[i][j], Ny[i][j], Nz[i][j]);
+         // glNormal3f(Nx[i][j], Ny[i][j], Nz[i][j]);
          glColor3f(R[i][j], G[i][j], B[i][j]);
          glVertex3f(Px[i][j], Py[i][j], Pz[i][j]);
 
-         glNormal3f(Nx[i + 1][j], Ny[i + 1][j], Nz[i + 1][j]);
+         // glNormal3f(Nx[i + 1][j], Ny[i + 1][j], Nz[i + 1][j]);
          glColor3f(R[i + 1][j], G[i + 1][j], B[i + 1][j]);
          glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j]);
 
-         glNormal3f(Nx[i + 1][j + 1], Ny[i + 1][j + 1], Nz[i + 1][j + 1]);
+         // glNormal3f(Nx[i + 1][j + 1], Ny[i + 1][j + 1], Nz[i + 1][j + 1]);
          glColor3f(R[i + 1][j + 1], G[i + 1][j + 1], B[i + 1][j + 1]);
          glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1]);
          
-         glNormal3f(Nx[i][j + 1], Ny[i][j + 1], Nz[i][j + 1]);
+         // glNormal3f(Nx[i][j + 1], Ny[i][j + 1], Nz[i][j + 1]);
          glColor3f(R[i][j + 1], G[i][j + 1], B[i][j + 1]);
          glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1]);
          glEnd();
@@ -235,6 +268,19 @@ void keyboard(unsigned char key, int x, int y)
       yangle += 5;
    else if (key == 'Z')
       zangle += 5;
+
+   else if (key == 'R')
+      Lr += 0.5;
+   else if (key == 'r')
+      Lr -= 0.5;
+   else if (key == 'G')
+      Lg += 0.5;
+   else if (key == 'g')
+      Lg -= 0.5;
+   else if (key == 'B')
+      Lb += 0.5;
+   else if (key == 'b')
+      Lb -= 0.5;
 
      // Handle material properties
    // if (key == 'a')
