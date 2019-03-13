@@ -1,13 +1,16 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #ifdef MAC
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+using namespace std;
 
 // Global variables 
+#define ROTATE 2
 int xangle = 0;
 int yangle = 0;
 int zangle = 0;
@@ -28,30 +31,41 @@ float R[SIZE + 1][SIZE + 1];
 float G[SIZE + 1][SIZE + 1];
 float B[SIZE + 1][SIZE + 1];
 
-// Light Position
-float lx = 0.5;
-float ly = -0.5;
-float lz = 1;
+// Light0 Position
+#define LIGHT0 0
+float lx0 = 0.5;
+float ly0 = -0.5;
+float lz0 = 0.25;
+
+float Mr0 = ((float) rand() / (RAND_MAX)) ;
+float Mg0 = ((float) rand() / (RAND_MAX)) ;
+float Mb0 = ((float) rand() / (RAND_MAX))  ;
+
+float Lr0 = ((float) rand() / (RAND_MAX)) ;
+float Lg0 = ((float) rand() / (RAND_MAX)) ;
+float Lb0 = ((float) rand() / (RAND_MAX)) ;
+
+// Light1 Position
+#define LIGHT1 1
+float lx1 = 0.25;
+float ly1 = -0.25;
+float lz1 = 0.25;
+
+float Mr1 = ((float) rand() / (RAND_MAX)) ;
+float Mg1 = ((float) rand() / (RAND_MAX)) ;
+float Mb1 = ((float) rand() / (RAND_MAX))  ;
+
+float Lr1 = ((float) rand() / (RAND_MAX));
+float Lg1 = ((float) rand() / (RAND_MAX));
+float Lb1 = ((float) rand() / (RAND_MAX));
+
+int mode = ROTATE;
 
 
 float myrand(float R)
 {
    return (2 * R * rand()) / RAND_MAX - R;
 }
-
-
-float Mr = myrand(1);
-float Mg = myrand(1);
-float Mb = myrand(1);
-
-
-float Lr = myrand(1);
-float Lg = myrand(1);
-float Lb = myrand(1);
-
-#define STEP 0.1
-
-
 
 
 void split(int xlow, int xhigh, int ylow, int yhigh, float radius)
@@ -144,6 +158,21 @@ void init_surface(float Xmin, float Xmax, float Ymin, float Ymax,
    Py[SIZE][SIZE] = 0.5;
    Pz[SIZE][SIZE] = 0.0;
    init_normals();
+   // LIGHT0
+   lx0 = ((float) rand() / (RAND_MAX)) ;
+   ly0 = ((float) rand() / (RAND_MAX)) ;
+   lz0 = ((float) rand() / (RAND_MAX)) ;
+   Lr0 = ((float) rand() / (RAND_MAX)) ;
+   Lg0 = ((float) rand() / (RAND_MAX)) ;
+   Lb0 = ((float) rand() / (RAND_MAX)) ;
+
+   // LIGHT1
+   lx1 = ((float) rand() / (RAND_MAX)) ;
+   ly1 = ((float) rand() / (RAND_MAX)) ;
+   lz1 = ((float) rand() / (RAND_MAX)) ;
+   Lr1 = ((float) rand() / (RAND_MAX)) ;
+   Lg1 = ((float) rand() / (RAND_MAX)) ;
+   Lb1 = ((float) rand() / (RAND_MAX)) ;
    split(0, SIZE, 0, SIZE, 20);
 }
 
@@ -192,30 +221,39 @@ void display()
    {
       for (int j = 0; j < SIZE; ++j)
       {
-         float Lx = (lx - Px[i][j]);
-         float Ly = ly - Py[i][j];
-         float Lz = lz - Pz[i][j];
-         float length = sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+         float Lx0 = (lx0 - Px[i][j]);
+         float Ly0 = ly0 - Py[i][j];
+         float Lz0 = lz0 - Pz[i][j];
+         float Lx1 = (lx1 - Px[i][j]);
+         float Ly1 = ly1 - Py[i][j];
+         float Lz1 = lz1 - Pz[i][j];
+         float length0 = sqrt(Lx0 * Lx0 + Ly0 * Ly0 + Lz0 * Lz0);
+         float length1 = sqrt(Lx1 * Lx1 + Ly1 * Ly1 + Lz1 * Lz1);
 
-         Lx = Lx / length;
-         Ly = Ly / length;
-         Lz = Lz / length;
+         Lx0 = Lx0 / length0;
+         Ly0 = Ly0 / length0;
+         Lz0 = Lz0 / length0;
+         Lx1 = Lx1 / length1;
+         Ly1 = Ly1 / length1;
+         Lz1 = Lz1 / length1;
 
          // Dot product of N, L
-         float dot = (Lx * Nx[i][j]) + (Ly * Ny[i][j]) + (Lz * Nz[i][j]);
+         float dot0 = (Lx0 * Nx[i][j]) + (Ly0 * Ny[i][j]) + (Lz0 * Nz[i][j]);
+         float dot1 = (Lx1 * Nx[i][j]) + (Ly1 * Ny[i][j]) + (Lz1 * Nz[i][j]);
 
          // Make M and L hard coded, global vars
-         // Mr, Mg, Mb
-         // Lr, Lg, Lb
-         // R = Mr * Lr * dot
-         // G = Mg * Lg * dot
-         // B = Mb * Lb * dot
-         R[i][j] = Mr * Lr * dot;
-         G[i][j] = Mg * Lg * dot;
-         B[i][j] = Mb * Lb * dot;
-
+         // Mr0, Mg0, Mb0
+         // Lr0, Lg0, Lb0
+         // R = Mr0 * Lr0 * dot0
+         // G = Mg0 * Lg0 * dot0
+         // B = Mb0 * Lb0 * dot0
+         R[i][j] = Mr0 * Lr0 * dot0 + Mr1 * Lr1 * dot1;
+         G[i][j] = Mg0 * Lg0 * dot0 + Mg1 * Lg1 * dot1;
+         B[i][j] = Mb0 * Lb0 * dot0 + Mb1 * Lb1 * dot1;
       }
    }
+
+   
    // nested for loop
    // color then point
    // Draw the surface
@@ -255,59 +293,98 @@ void keyboard(unsigned char key, int x, int y)
    if (key == 'i')
       init_surface(-1.0, 1.0, -1.0, 1.0, -1, 0, -1, 0, 0, 0);
 
-   // Update angles
-   else if (key == 'x')
-      xangle -= 5;
-   else if (key == 'y')
-      yangle -= 5;
-   else if (key == 'z')
-      zangle -= 5;
-   else if (key == 'X')
-      xangle += 5;
-   else if (key == 'Y')
-      yangle += 5;
-   else if (key == 'Z')
-      zangle += 5;
+   if (key == '0')
+   {
+      printf("LIGHT0 Activated\n");
+      mode = LIGHT0;
+   }
 
-   else if (key == 'R')
-      Lr += 0.5;
-   else if (key == 'r')
-      Lr -= 0.5;
-   else if (key == 'G')
-      Lg += 0.5;
-   else if (key == 'g')
-      Lg -= 0.5;
-   else if (key == 'B')
-      Lb += 0.5;
-   else if (key == 'b')
-      Lb -= 0.5;
+   if (key == '1')
+   {
+      printf("LIGHT1 Activated\n");
+      mode = LIGHT1;
+   }
 
-     // Handle material properties
-   // if (key == 'a')
-   //    Ka -= STEP;
-   // if (key == 'd')
-   //    Kd -= STEP;
-   // if (key == 's')
-   //    Ks -= STEP;
-   // if (key == 'p')
-   //    Kp -= STEP;
-   // if (key == 'A')
-   //    Ka += STEP;
-   // if (key == 'D')
-   //    Kd += STEP;
-   // if (key == 'S')
-   //    Ks += STEP;
-   // if (key == 'P')
-   //    Kp += STEP;
-   // if (Ka < 0)
-   //    Ka = 0;
-   // if (Kd < 0)
-   //    Kd = 0;
-   // if (Ks < 0)
-   //    Ks = 0;
-   // if (Kp < STEP)
-   //    Kp = STEP;
-   glutPostRedisplay();
+   if (key == '2')
+   {
+      printf("Rotate Mode\n");
+      mode = ROTATE;
+   }
+
+   if (mode == ROTATE)
+   {
+      // Update angles
+      if (key == 'x')
+         xangle -= 5;
+      else if (key == 'y')
+         yangle -= 5;
+      else if (key == 'z')
+         zangle -= 5;
+      else if (key == 'X')
+         xangle += 5;
+      else if (key == 'Y')
+         yangle += 5;
+      else if (key == 'Z')
+         zangle += 5;
+   }
+
+
+   if (mode == LIGHT0)
+   {
+      if (key == 'x')
+         lx0 -= 1;
+      else if (key == 'y')
+         ly0 -= 1;
+      else if (key == 'z')
+         lz0 -= 1;
+      else if (key == 'X')
+         lx0 += 1;
+      else if (key == 'Y')
+         ly0 += 1;
+      else if (key == 'Z')
+         lz0 += 1;
+      else if (key == 'R')
+         Lr0 += 0.1;
+      else if (key == 'r')
+         Lr0 -= 0.1;
+      else if (key == 'G')
+         Lg0 += 0.1;
+      else if (key == 'g')
+         Lg0 -= 0.1;
+      else if (key == 'B')
+         Lb0 += 0.1;
+      else if (key == 'b')
+         Lb0 -= 0.1;
+   }
+
+   else if (mode == LIGHT1)
+   {
+      if (key == 'x')
+         lx1 -= 1;
+      else if (key == 'y')
+         ly1 -= 1;
+      else if (key == 'z')
+         lz1 -= 1;
+      else if (key == 'X')
+         lx1 += 1;
+      else if (key == 'Y')
+         ly1 += 1;
+      else if (key == 'Z')
+         lz1 += 1;
+      else if (key == 'R')
+         Lr1 += 0.1;
+      else if (key == 'r')
+         Lr1 -= 0.1;
+      else if (key == 'G')
+         Lg1 += 0.1;
+      else if (key == 'g')
+         Lg1 -= 0.1;
+      else if (key == 'B')
+         Lb1 += 0.1;
+      else if (key == 'b')
+         Lb1 -= 0.1;
+   }
+
 
    // Redraw objects
    glutPostRedisplay();
@@ -316,13 +393,32 @@ void keyboard(unsigned char key, int x, int y)
 
 void print_menu() 
 {
-    printf("Keyboard commands:\n");
-    printf("   'x' - rotate x-axis -5 degrees\n");
-    printf("   'X' - rotate x-axis +5 degrees\n");
-    printf("   'y' - rotate y-axis -5 degrees\n");
-    printf("   'Y' - rotate y-axis +5 degrees\n");
-    printf("   'z' - rotate z-axis -5 degrees\n");
-    printf("   'Z' - rotate z-axis +5 degrees\n");
+   printf("Keyboard commands:\n");
+   printf("   '2' - switch to Rotate Mode\n");
+   printf("   'x' - rotate x-axis -5 degrees\n");
+   printf("   'X' - rotate x-axis +5 degrees\n");
+   printf("   'y' - rotate y-axis -5 degrees\n");
+   printf("   'Y' - rotate y-axis +5 degrees\n");
+   printf("   'z' - rotate z-axis -5 degrees\n");
+   printf("   'Z' - rotate z-axis +5 degrees\n");
+   printf("\n");
+   printf("   '0' - switch to LIGHT0\n");
+   printf("   '1' - switch to LIGHT1\n");
+   printf("   'r' - decrease Red light by 0.1\n");
+   printf("   'R' - increase Red light by 0.1\n");
+   printf("   'g' - decrease green light by 0.1\n");
+   printf("   'G' - increase green light by 0.1\n");
+   printf("   'b' - decrease blue light by 0.1\n");
+   printf("   'B' - increase blue light by 0.1\n");
+   printf("   'x' - rotate x-axis -1 degrees\n");
+   printf("   'X' - rotate x-axis +1 degrees\n");
+   printf("   'y' - rotate y-axis -1 degrees\n");
+   printf("   'Y' - rotate y-axis +1 degrees\n");
+   printf("   'z' - rotate z-axis -1 degrees\n");
+   printf("   'Z' - rotate z-axis +1 degrees\n");
+
+
+
 }
 
 //---------------------------------------
