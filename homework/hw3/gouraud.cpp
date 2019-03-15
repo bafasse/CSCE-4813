@@ -59,7 +59,7 @@ float Lr1 = ((float) rand() / (RAND_MAX));
 float Lg1 = ((float) rand() / (RAND_MAX));
 float Lb1 = ((float) rand() / (RAND_MAX));
 
-int mode = ROTATE;
+int mode;
 
 
 float myrand(float R)
@@ -343,6 +343,7 @@ void keyboard(unsigned char key, int x, int y)
          ly0 += 1;
       else if (key == 'Z')
          lz0 += 1;
+         
       else if (key == 'R')
          Lr0 += 0.1;
       else if (key == 'r')
@@ -371,6 +372,7 @@ void keyboard(unsigned char key, int x, int y)
          ly1 += 1;
       else if (key == 'Z')
          lz1 += 1;
+
       else if (key == 'R')
          Lr1 += 0.1;
       else if (key == 'r')
@@ -394,7 +396,10 @@ void keyboard(unsigned char key, int x, int y)
 void print_menu() 
 {
    printf("Keyboard commands:\n");
+   printf("   '0' - switch to LIGHT0\n");
+   printf("   '1' - switch to LIGHT1\n");
    printf("   '2' - switch to Rotate Mode\n");
+   printf("\n");
    printf("   'x' - rotate x-axis -5 degrees\n");
    printf("   'X' - rotate x-axis +5 degrees\n");
    printf("   'y' - rotate y-axis -5 degrees\n");
@@ -402,8 +407,6 @@ void print_menu()
    printf("   'z' - rotate z-axis -5 degrees\n");
    printf("   'Z' - rotate z-axis +5 degrees\n");
    printf("\n");
-   printf("   '0' - switch to LIGHT0\n");
-   printf("   '1' - switch to LIGHT1\n");
    printf("   'r' - decrease Red light by 0.1\n");
    printf("   'R' - increase Red light by 0.1\n");
    printf("   'g' - decrease green light by 0.1\n");
