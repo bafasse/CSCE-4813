@@ -102,9 +102,87 @@ void geoProjectPoint(double x, double y, double z, double d)
 
 
 // Clipping Operations ====================================
-double cohenSutherland()
+void cohenSutherland(double x, double y)
 {
-    return 0;
+    // no Z
+
+    // READS BINARY BACKWARDS
+    bool array [4];
+    int outcode = 0;
+
+    if (x > 1)
+    {
+        array[0] = 1;
+        array[1] = 0;
+        // cout << " X Greater than 1" << endl;
+    }
+
+    else if (x < -1)
+    {
+        array[0] = 0;
+        array[1] = 1;
+        // cout << " X Less than one" << endl;
+    }
+
+    else if (x > -1 && x < 1)
+    {
+        array[0] = 0;
+        array[1] = 0;
+        // cout << " X Just right" << endl;
+    }
+
+    else
+    {
+        cout << "ERROR with X value" << endl;
+        exit(0);
+    }
+    // =================================
+    if (y > 1)
+    {
+        array[2] = 1;
+        array[3] = 0;
+        // cout << " Y Greater than 1" << endl;
+    }
+    else if (y < -1)
+    {
+        array[2] = 0;
+        array[3] = 1;
+        // cout << " Y Less than one" << endl;
+    }
+
+    else if (y > -1 && y < 1)
+    {
+        array[2] = 0;
+        array[3] = 0;
+        // cout << " Y Just right" << endl;
+    }
+    else
+    {
+        cout << "ERROR with Y value" << endl;
+        exit(0);
+    }
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (array[i] == 1)
+        {
+            // for (int j = 0; j < i; ++j)
+            // {
+            //     // power = 1;
+            //     power *= 2;
+            // }
+            // outcode += power;
+            outcode += pow(2, i);
+            // cout << "pow(2, i) = " << pow(2, i) << endl;
+        }
+        else if (array[i] == 0)
+        {
+            outcode += 0;
+            // cout << "Inside 0" << endl;
+        }
+    }
+
+    cout << "Outcode Value is = " << outcode << endl << endl;
 }
 
 double acceptLineSegment()
@@ -125,9 +203,17 @@ double clipLine()
 
 
 // Shading ================================================
-double Normalize()
+void Normalize(double Ax, double Ay, double Az)
 {
-    return 0;
+    // V^ = v \ |v|
+    double vLength = sqrt(Ax * Ax + Ay * Ay + Az * Az);
+    double Bx = Ax / vLength;
+    double By = Ay / vLength;
+    double Bz = Az / vLength;
+
+    cout << endl;
+    cout << "[Bx, By, Bz] = [" << Bx << ", " << By << ", " << Bz << "]" << endl;
+    cout << endl;
 }
 
 double dotProduct(double Ax, double Ay, double Az, double Bx, double By, double Bz)
@@ -148,9 +234,11 @@ void crossProduct(double Ax, double Ay, double Az, double Bx, double By, double 
     cout << "Cz = " << Cz << endl;
 }
 
-double diffuseTerm()
+double diffuseTerm(double Lx, double Ly, double Lz, double Nx, double Ny, double Nz)
 {
-    return 0;
+    // diffuse = n * L
+    return dotProduct(Lx, Ly, Lz, Nx, Ny, Nz);
+
 }
 
 double idealReflection()
@@ -160,6 +248,7 @@ double idealReflection()
 
 double specularTerm()
 {
+    // (v*r)^p
     return 0;
 }
 // ========================================================
@@ -274,8 +363,12 @@ void keyboard(unsigned char key)
 
     else if (key == '6')
     {
-        cout << "This doesnt do anything right now" << endl;
-        cout << "Come back later" << endl;
+        cout << "You have chosen Cohen-Sutherland" << endl;
+        double x, y;
+        cout << "Please enter values for x and y" << endl;
+        cout << "X = "; cin >> x;
+        cout << "Y = "; cin >> y;
+        cohenSutherland(x, y);
     }
 
     else if (key == '7')
@@ -298,8 +391,17 @@ void keyboard(unsigned char key)
 
     else if (key == 'a')
     {
-        cout << "This doesnt do anything right now" << endl;
-        cout << "Come back later" << endl;
+        // cout << "This doesnt do anything right now" << endl;
+        // cout << "Come back later" << endl;
+
+        cout << "You have chosen Normalize" << endl;
+        double Ax, Ay, Az;
+        cout << "Please enter the location of the points xyz" << endl;
+        cout << "Ax = "; cin >> Ax;
+        cout << "Ay = "; cin >> Ay;
+        cout << "Az = "; cin >> Az;
+        cout << endl;
+        Normalize(Ax, Ay, Az);
     }
 
     else if (key == 'b')
@@ -336,8 +438,18 @@ void keyboard(unsigned char key)
 
     else if (key == 'd')
     {
-        cout << "This doesnt do anything right now" << endl;
-        cout << "Come back later" << endl;
+        // cout << "This doesnt do anything right now" << endl;
+        // cout << "Come back later" << endl;
+        cout << "You have chosen Diffuse Term" << endl;
+        double Lx, Ly, Lz;
+        double Nx, Ny, Nz;
+        cout << "Please enter the xyz values for N and L" << endl;
+        cout << "Lx = "; cin >> Lx;
+        cout << "Ly = "; cin >> Ly;
+        cout << "Lz = "; cin >> Lz;
+        cout << "Nx = "; cin >> Nx;
+        cout << "Ny = "; cin >> Ny;
+        cout << "Nz = "; cin >> Nz;
     }
 
     else if (key == 'e')
@@ -369,11 +481,20 @@ void keyboard(unsigned char key)
 
 int main(int argc, char *argv[]) 
 {
-    print_menu();
-
+    bool cough = true;
+    cout << cough << endl;
     unsigned char key;
+    print_menu();
     cin >> key;
-    // cout << "your input was: " << key << endl;
     cout << endl;
-    keyboard(key);
+
+    while (key != 'q')
+    {
+        keyboard(key);
+        print_menu();
+        cin >> key;
+        cout << endl;
+    }
+
+    return 0;
 }
