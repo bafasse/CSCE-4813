@@ -1,3 +1,5 @@
+20 20
+0 18
 bbbbbbbbbbbbbbbbbb b
 b             rrrr b
 b rrrrr rrrr    rr b
