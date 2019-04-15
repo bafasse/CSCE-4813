@@ -40,10 +40,10 @@ unsigned char *brick_texture;
 unsigned char *wood_texture;
 unsigned char *grass_texture;
 
-char brick_array[1];
-char rock_array[1];
-char wood_array[1];
-char grass_array[1];
+byte brick_array[1];
+byte rock_array[1];
+unsigned char wood_array[1];
+unsigned char grass_array[1];
 
 
 void read (string file) 
@@ -281,6 +281,7 @@ void display()
    	glRotatef(xangle, 1.0, 0.0, 0.0);
    	glRotatef(yangle, 0.0, 1.0, 0.0);
 	glRotatef(zangle, 0.0, 0.0, 1.0);
+	int k = -9;
 
 	// Draw Objects
 	for (int i = 0; i < rows; ++i)
@@ -293,7 +294,7 @@ void display()
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 				init_rock(rock, texture, xdim, ydim);
 				// rock_texture;
-				init_block(i, j, 0, i+1, j+1, 1);
+				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
 			else if (maze[i][j] == 'b')
@@ -301,7 +302,7 @@ void display()
 				//use brick textureee
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
 				init_brick(brick, texture, xdim, ydim);
-				init_block(i, j, 0, i+1, j+1, 1);
+				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
 			else if (maze[i][j] == 'w')
@@ -309,7 +310,7 @@ void display()
 				// use wood texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture);
 				init_wood(wood, texture, xdim, ydim);
-				init_block(i, j, 0, i+1, j+1, 1);
+				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
 			else if (maze[i][j] == ' ')
@@ -317,7 +318,7 @@ void display()
 				// use grass texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
 				init_grass(grass, texture, xdim, ydim);
-				init_block(i, j, 0, i+1, j+1, 1);
+				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
 			// else 
@@ -337,7 +338,7 @@ void init()
    	glClearColor(0.0, 0.0, 0.0, 1.0);
    	glMatrixMode(GL_PROJECTION);
    	glLoadIdentity();
-   	glOrtho(-30.0, 30.0, -30.0, 30.0, -30.0, 30.0);
+   	glOrtho(-25.0, 25.0, -25.0, 25.0, -25.0, 25.0);
    	glEnable(GL_DEPTH_TEST);
 	
 	// Init Texture
@@ -347,7 +348,7 @@ void init()
 	init_wood((char *)"textures/wood.jpg", wood_texture, xdim, ydim);
 	init_grass((char *)"textures/grass.jpg", grass_texture, xdim, ydim);
 	glEnable(GL_TEXTURE_2D);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
+	rock_array = glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
