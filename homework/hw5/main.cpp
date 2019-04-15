@@ -33,11 +33,11 @@ int mode = ROTATE;
 
 // unsigned char *texture;
 int xdim, ydim;
-char brick[50] = "textures/brick.jpg";
-char rock[50] = "textures/rock.jpg";
-char wood[50] = "textures/wood.jpg";
-char grass[50] = "textures/grass.jpg";
-char player[50] = "textures/player.jpg";
+char *brick = "textures/brick.jpg";
+char *rock = "textures/rock.jpg";
+char *wood = "textures/wood.jpg";
+char *grass = "textures/grass.jpg";
+char *player = "textures/player.jpg";
 unsigned char *rock_texture;
 unsigned char *brick_texture;
 unsigned char *wood_texture;
@@ -50,10 +50,10 @@ unsigned char wood_array[1];
 unsigned char grass_array[1];
 
 
-void read (string file) 
+void read_maze() 
 {
     string line;
-    ifstream myfile (file);
+    ifstream myfile ("maze.txt");
 	string junk;
 
     if (myfile.is_open())
@@ -83,52 +83,27 @@ void read (string file)
 }
 
 
-void init_rock(char *rock, unsigned char *&texture, int &xdim, int &ydim)
+void init_texture(char *name, unsigned char *&texture, int &xdim, int &ydim)
 {
-	im_color image;
-	image.ReadJpg(rock);
+   // Read jpg image
+   im_color image;
+   image.ReadJpg(name);
+   printf("Reading image %s\n", name);
+   xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
+   ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
+   image.Interpolate(xdim, ydim);
+   printf("Interpolating to %d by %d\n", xdim, ydim);
 
-	printf("Reading image %s\n", rock);
-   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
-   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
-   	image.Interpolate(xdim, ydim);
-   	printf("Interpolating to %d by %d\n", xdim, ydim);
-
-   	// Copy image into texture array
-   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
-   	int index = 0;
-   	for (int y = 0; y < ydim; y++)
-   	   	for (int x = 0; x < xdim; x++)
-   	   	{
-    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
-		}
-}
-
-
-void init_brick(char *brick, unsigned char *&texture, int &xdim, int &ydim)
-{
-	im_color image;
-	image.ReadJpg(brick);
-
-	printf("Reading image %s\n", brick);
-   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
-   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
-   	image.Interpolate(xdim, ydim);
-   	printf("Interpolating to %d by %d\n", xdim, ydim);
-
-   	// Copy image into texture array
-   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
-   	int index = 0;
-   	for (int y = 0; y < ydim; y++)
-   	   	for (int x = 0; x < xdim; x++)
-   	   	{
-    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
-		}
-
+   // Copy image into texture array
+   texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
+   int index = 0;
+   for (int y = 0; y < ydim; y++)
+      for (int x = 0; x < xdim; x++)
+      {
+         texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
+         texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
+         texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
+      }
 }
 
 void init_wood(char *wood, unsigned char *&texture, int &xdim, int &ydim)
@@ -305,7 +280,7 @@ void print_maze()
 }
 
 
-void display() 
+void display_john() 
 {
 	// Incrementally rotate objects
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -325,7 +300,7 @@ void display()
 	// Draw Obje
 }
 
-void display2() 
+void display() 
 {
 	// Incrementally rotate objects
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -346,7 +321,7 @@ void display2()
 			{
 				// use rock texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
-				init_rock(rock, rock_texture, xdim, ydim);
+				// init_texture(rock, rock_texture, xdim, ydim);
 				// rock_texture;
 				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
@@ -397,29 +372,29 @@ void display2()
 
 void init() 
 {
-	// Init view
-   	glClearColor(0.0, 0.0, 0.0, 1.0);
-   	glMatrixMode(GL_PROJECTION);
-   	glLoadIdentity();
-   	glOrtho(-25.0, 25.0, -25.0, 25.0, -25.0, 25.0);
-   	glEnable(GL_DEPTH_TEST);
-	
-	// Init Texture
-	read("maze.txt");
-	init_rock((char *)"textures/rock.jpg", rock_texture, xdim, ydim);
-	init_brick((char *)"textures/brick.jpg", brick_texture, xdim, ydim);
-	init_wood((char *)"textures/wood.jpg", wood_texture, xdim, ydim);
-	init_grass((char *)"textures/grass.jpg", grass_texture, xdim, ydim);
-	init_player((char *)"textures/player.jpg", player_texture, xdim, ydim);
-	glEnable(GL_TEXTURE_2D);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	 // Init maze
+   read_maze();
+   float radius = sqrt(rows*rows + cols*cols)/2;
+
+   // Init view
+   glClearColor(0.0, 0.0, 0.0, 1.0);
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   glOrtho(-radius, radius, -radius, radius, -radius, radius);
+   glEnable(GL_DEPTH_TEST);
+
+   // Init texture
+   init_texture(brick, brick_texture, xdim, ydim);
+   // init_texture((char *)"fire.jpg", fire_texture, xdim, ydim);
+   init_texture(grass, grass_texture, xdim, ydim);
+   init_texture(rock, rock_texture, xdim, ydim);
+   init_texture(wood, wood_texture, xdim, ydim);
+   glEnable(GL_TEXTURE_2D);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 }
 
 
