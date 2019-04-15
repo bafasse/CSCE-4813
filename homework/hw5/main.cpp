@@ -25,22 +25,24 @@ unsigned char maze[50][50];
 #define TRANSLATE 2
 int xangle = 10;
 int yangle = 10;
-int zangle = 0;
+int zangle = 100;
 int xpos = 0;
 int ypos = 0;
 int zpos = 0;
 int mode = ROTATE;
 
-unsigned char *texture;
+// unsigned char *texture;
 int xdim, ydim;
-char *brick = "textures/brick.jpg";
-char *rock = "textures/rock.jpg";
-char *wood = "textures/wood.jpg";
-char *grass = "textures/grass.jpg";
+char brick[50] = "textures/brick.jpg";
+char rock[50] = "textures/rock.jpg";
+char wood[50] = "textures/wood.jpg";
+char grass[50] = "textures/grass.jpg";
+char player[50] = "textures/player.jpg";
 unsigned char *rock_texture;
 unsigned char *brick_texture;
 unsigned char *wood_texture;
 unsigned char *grass_texture;
+unsigned char *player_texture;
 
 unsigned char brick_array[1];
 unsigned char rock_array[1];
@@ -110,11 +112,11 @@ void init_brick(char *brick, unsigned char *&texture, int &xdim, int &ydim)
 	im_color image;
 	image.ReadJpg(brick);
 
-	// printf("Reading image %s\n", brick);
+	printf("Reading image %s\n", brick);
    	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
    	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
    	image.Interpolate(xdim, ydim);
-   	// printf("Interpolating to %d by %d\n", xdim, ydim);
+   	printf("Interpolating to %d by %d\n", xdim, ydim);
 
    	// Copy image into texture array
    	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
@@ -157,6 +159,30 @@ void init_grass(char *grass, unsigned char *&texture, int &xdim, int &ydim)
 {
 	im_color image;
 	image.ReadJpg(grass);
+
+	// printf("Reading image %s\n", grass);
+   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
+   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
+   	image.Interpolate(xdim, ydim);
+   	// printf("Interpolating to %d by %d\n", xdim, ydim);
+
+   	// Copy image into texture array
+   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
+   	int index = 0;
+   	for (int y = 0; y < ydim; y++)
+   	   	for (int x = 0; x < xdim; x++)
+   	   	{
+    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
+        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
+        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
+		}
+}
+
+
+void init_player(char *player, unsigned char *&texture, int &xdim, int &ydim)
+{
+	im_color image;
+	image.ReadJpg(player);
 
 	// printf("Reading image %s\n", grass);
    	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
@@ -289,6 +315,26 @@ void display()
    	glRotatef(xangle, 1.0, 0.0, 0.0);
    	glRotatef(yangle, 0.0, 1.0, 0.0);
 	glRotatef(zangle, 0.0, 0.0, 1.0);
+
+	// init_rock(rock, rock_texture, xdim, ydim);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
+	
+	init_block(0, 0, 0, 1, 1, 1);
+	glFlush();
+
+	// Draw Obje
+}
+
+void display2() 
+{
+	// Incrementally rotate objects
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   	glMatrixMode(GL_MODELVIEW);
+   	glLoadIdentity();
+   	glTranslatef(xpos / 500.0, ypos / 500.0, zpos / 500.0);
+   	glRotatef(xangle, 1.0, 0.0, 0.0);
+   	glRotatef(yangle, 0.0, 1.0, 0.0);
+	glRotatef(zangle, 0.0, 0.0, 1.0);
 	int k = -9;
 
 	// Draw Objects
@@ -300,7 +346,7 @@ void display()
 			{
 				// use rock texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
-				init_rock(rock, texture, xdim, ydim);
+				init_rock(rock, rock_texture, xdim, ydim);
 				// rock_texture;
 				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
@@ -336,6 +382,15 @@ void display()
 
 		}
 	}
+
+	for (int i = 0; i < rows; ++i)
+	{
+		for (int j = 0; j < cols; ++j)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
+			init_block(0,0,0,18,0,0);
+		}
+	}
 	glFlush();
 }
 
@@ -355,6 +410,7 @@ void init()
 	init_brick((char *)"textures/brick.jpg", brick_texture, xdim, ydim);
 	init_wood((char *)"textures/wood.jpg", wood_texture, xdim, ydim);
 	init_grass((char *)"textures/grass.jpg", grass_texture, xdim, ydim);
+	init_player((char *)"textures/player.jpg", player_texture, xdim, ydim);
 	glEnable(GL_TEXTURE_2D);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
