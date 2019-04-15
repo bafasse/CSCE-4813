@@ -14,16 +14,18 @@ using namespace std;
 
 // #define XDIM 256
 // #define YDIM 256
-const int rows = 21;
-const int cols = 21;
-unsigned char maze[rows][cols];
+int rows = 21;
+int cols = 21;
+int startrow = 0;
+int startcol  = 0;
+unsigned char maze[50][50];
 // unsigned char image[YDIM][XDIM][3];
 // Global variables 
 #define ROTATE 1
 #define TRANSLATE 2
 int xangle = 10;
 int yangle = 10;
-int zangle = 10;
+int zangle = 0;
 int xpos = 0;
 int ypos = 0;
 int zpos = 0;
@@ -40,8 +42,8 @@ unsigned char *brick_texture;
 unsigned char *wood_texture;
 unsigned char *grass_texture;
 
-byte brick_array[1];
-byte rock_array[1];
+unsigned char brick_array[1];
+unsigned char rock_array[1];
 unsigned char wood_array[1];
 unsigned char grass_array[1];
 
@@ -50,19 +52,25 @@ void read (string file)
 {
     string line;
     ifstream myfile (file);
-    myfile >> noskipws;
+	string junk;
+
     if (myfile.is_open())
     {
             // cout << line << '\n';
 
             // Reads in maze to array
+			myfile >> rows >> cols >> startrow >> startcol;
+			cout << rows << ' ' << cols << endl;
+			cout << startrow << ' ' << startcol << endl;
+			getline(myfile, junk);
+			myfile >> noskipws;
             for (int i = 0; i < rows; ++i)
             {
                 for ( int j = 0; j < cols; ++j)
                 {
                     myfile >> maze[i][j];
                 }
-                // cout << endl;
+                getline(myfile, junk);
             }
         myfile.close();
     }
@@ -301,7 +309,7 @@ void display()
 			{
 				//use brick textureee
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
-				init_brick(brick, texture, xdim, ydim);
+				// init_brick(brick, texture, xdim, ydim);
 				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
@@ -309,7 +317,7 @@ void display()
 			{
 				// use wood texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture);
-				init_wood(wood, texture, xdim, ydim);
+				// init_wood(wood, texture, xdim, ydim);
 				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
@@ -317,14 +325,14 @@ void display()
 			{
 				// use grass texture
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
-				init_grass(grass, texture, xdim, ydim);
+				// init_grass(grass, texture, xdim, ydim);
 				init_block(i + k, j + k, 0+ k, i+1 + k, j+1 + k, 1 + k);
 			}
 
-			// else 
-			// {
-			// 	cout << "Cannot map this texure" << endl;
-			// }
+			else 
+			{
+				cout << "Cannot map this texure" << endl;
+			}
 
 		}
 	}
@@ -348,7 +356,7 @@ void init()
 	init_wood((char *)"textures/wood.jpg", wood_texture, xdim, ydim);
 	init_grass((char *)"textures/grass.jpg", grass_texture, xdim, ydim);
 	glEnable(GL_TEXTURE_2D);
-	rock_array = glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, brick_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, wood_texture);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
