@@ -389,6 +389,7 @@ void init()
    init_texture(grass, grass_texture, xdim, ydim);
    init_texture(rock, rock_texture, xdim, ydim);
    init_texture(wood, wood_texture, xdim, ydim);
+//    init_texture(player, player_texture, xdim, ydim);
    glEnable(GL_TEXTURE_2D);
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -450,6 +451,23 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 
+void print_menu()
+{
+	printf("\n");
+	printf("Keyboard commands:\n");
+	// printf("   '0' - switch to LIGHT0\n");
+	// printf("   '1' - switch to LIGHT1\n");
+	// printf("   '2' - switch to Rotate Mode\n");
+	// printf("\n");
+	printf("   'x' - rotate x-axis -5 degrees\n");
+	printf("   'X' - rotate x-axis +5 degrees\n");
+	printf("   'y' - rotate y-axis -5 degrees\n");
+	printf("   'Y' - rotate y-axis +5 degrees\n");
+	printf("   'z' - rotate z-axis -5 degrees\n");
+	printf("   'Z' - rotate z-axis +5 degrees\n");
+}
+
+
 int main (int argc, char *argv[]) 
 {
 
@@ -463,6 +481,7 @@ int main (int argc, char *argv[])
     // print_maze();
     glutKeyboardFunc(keyboard);
     init();
+	print_menu();
     // init_surface(-1.0, 1.0, -1.0, 1.0, -1, 0, -1, 0, 0, 0);
     // print_menu();
     glutMainLoop();
