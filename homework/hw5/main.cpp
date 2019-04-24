@@ -12,24 +12,21 @@
 using namespace std;
 #include "libim/im_color.h"
 
-// #define XDIM 256
-// #define YDIM 256
+#define PLAYER 0
+#define MAZE 1
 int rows = 21;
 int cols = 21;
 int startrow = 0;
 int startcol  = 0;
 unsigned char maze[50][50];
-// unsigned char image[YDIM][XDIM][3];
-// Global variables 
-#define ROTATE 1
-#define TRANSLATE 2
 int xangle = 10;
 int yangle = 10;
 int zangle = 100;
 int xpos = 0;
 int ypos = 0;
 int zpos = 0;
-int mode = ROTATE;
+int player_row, player_col;
+int mode = PLAYER;
 
 // unsigned char *texture;
 int xdim, ydim;
@@ -106,76 +103,78 @@ void init_texture(char *name, unsigned char *&texture, int &xdim, int &ydim)
       }
 }
 
-void init_wood(char *wood, unsigned char *&texture, int &xdim, int &ydim)
+void draw_cube(float midx, float midy, float midz, float size)
 {
-	im_color image;
-	image.ReadJpg(wood);
+   // Define 8 vertices
+   float ax = midx - size / 2;
+   float ay = midy - size / 2;
+   float az = midz + size / 2;
+   float bx = midx + size / 2;
+   float by = midy - size / 2;
+   float bz = midz + size / 2;
+   float cx = midx + size / 2;
+   float cy = midy + size / 2;
+   float cz = midz + size / 2;
+   float dx = midx - size / 2;
+   float dy = midy + size / 2;
+   float dz = midz + size / 2;
+   float ex = midx - size / 2;
+   float ey = midy - size / 2;
+   float ez = midz - size / 2;
+   float fx = midx + size / 2;
+   float fy = midy - size / 2;
+   float fz = midz - size / 2;
+   float gx = midx + size / 2;
+   float gy = midy + size / 2;
+   float gz = midz - size / 2;
+   float hx = midx - size / 2;
+   float hy = midy + size / 2;
+   float hz = midz - size / 2;
 
-	// printf("Reading image %s\n", wood);
-   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
-   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
-   	image.Interpolate(xdim, ydim);
-   	// printf("Interpolating to %d by %d\n", xdim, ydim);
+   // Draw 6 faces
+   glBegin(GL_POLYGON);
+   glVertex3f(ax, ay, az);
+   glVertex3f(bx, by, bz);
+   glVertex3f(cx, cy, cz);
+   glVertex3f(dx, dy, dz);
+   glEnd();
 
-   	// Copy image into texture array
-   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
-   	int index = 0;
-   	for (int y = 0; y < ydim; y++)
-   	   	for (int x = 0; x < xdim; x++)
-   	   	{
-    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
-		}
+   glBegin(GL_POLYGON);
+   glVertex3f(ax, ay, az);
+   glVertex3f(dx, dy, dz);
+   glVertex3f(hx, hy, hz);
+   glVertex3f(ex, ey, ez);
+   glEnd();
+
+   glBegin(GL_POLYGON);
+   glVertex3f(ax, ay, az);
+   glVertex3f(ex, ey, ez);
+   glVertex3f(fx, fy, fz);
+   glVertex3f(bx, by, bz);
+   glEnd();
+
+   glBegin(GL_POLYGON);
+   glVertex3f(gx, gy, gz);
+   glVertex3f(fx, fy, fz);
+   glVertex3f(ex, ey, ez);
+   glVertex3f(hx, hy, hz);
+   glEnd();
+
+   glBegin(GL_POLYGON);
+   glVertex3f(gx, gy, gz);
+   glVertex3f(cx, cy, cz);
+   glVertex3f(bx, by, bz);
+   glVertex3f(fx, fy, fz);
+   glEnd();
+
+   glBegin(GL_POLYGON);
+   glVertex3f(gx, gy, gz);
+   glVertex3f(hx, hy, hz);
+   glVertex3f(dx, dy, dz);
+   glVertex3f(cx, cy, cz);
+   glEnd();
 }
 
-
-void init_grass(char *grass, unsigned char *&texture, int &xdim, int &ydim)
-{
-	im_color image;
-	image.ReadJpg(grass);
-
-	// printf("Reading image %s\n", grass);
-   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
-   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
-   	image.Interpolate(xdim, ydim);
-   	// printf("Interpolating to %d by %d\n", xdim, ydim);
-
-   	// Copy image into texture array
-   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
-   	int index = 0;
-   	for (int y = 0; y < ydim; y++)
-   	   	for (int x = 0; x < xdim; x++)
-   	   	{
-    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
-		}
-}
-
-
-void init_player(char *player, unsigned char *&texture, int &xdim, int &ydim)
-{
-	im_color image;
-	image.ReadJpg(player);
-
-	// printf("Reading image %s\n", grass);
-   	xdim = 1; while (xdim < image.R.Xdim) xdim*=2; xdim /=2;
-   	ydim = 1; while (ydim < image.R.Ydim) ydim*=2; ydim /=2;
-   	image.Interpolate(xdim, ydim);
-   	// printf("Interpolating to %d by %d\n", xdim, ydim);
-
-   	// Copy image into texture array
-   	texture = (unsigned char *)malloc((unsigned int)(xdim*ydim*3));
-   	int index = 0;
-   	for (int y = 0; y < ydim; y++)
-   	   	for (int x = 0; x < xdim; x++)
-   	   	{
-    	     texture[index++] = (unsigned char)(image.R.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.G.Data2D[y][x]);
-        	 texture[index++] = (unsigned char)(image.B.Data2D[y][x]);
-		}
-}
 
 void init_block(float xmin, float ymin, float zmin,
            	   float xmax, float ymax, float zmax) 
@@ -280,25 +279,25 @@ void print_maze()
 }
 
 
-void display_john() 
-{
-	// Incrementally rotate objects
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   	glMatrixMode(GL_MODELVIEW);
-   	glLoadIdentity();
-   	glTranslatef(xpos / 500.0, ypos / 500.0, zpos / 500.0);
-   	glRotatef(xangle, 1.0, 0.0, 0.0);
-   	glRotatef(yangle, 0.0, 1.0, 0.0);
-	glRotatef(zangle, 0.0, 0.0, 1.0);
+// void display_john() 
+// {
+// 	// Incrementally rotate objects
+// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    	glMatrixMode(GL_MODELVIEW);
+//    	glLoadIdentity();
+//    	glTranslatef(xpos / 500.0, ypos / 500.0, zpos / 500.0);
+//    	glRotatef(xangle, 1.0, 0.0, 0.0);
+//    	glRotatef(yangle, 0.0, 1.0, 0.0);
+// 	glRotatef(zangle, 0.0, 0.0, 1.0);
 
-	// init_rock(rock, rock_texture, xdim, ydim);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
+// 	// init_rock(rock, rock_texture, xdim, ydim);
+// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, rock_texture);
 	
-	init_block(0, 0, 0, 1, 1, 1);
-	glFlush();
+// 	init_block(0, 0, 0, 1, 1, 1);
+// 	glFlush();
 
-	// Draw Obje
-}
+// 	// Draw Obje
+// }
 
 void display() 
 {
@@ -311,6 +310,8 @@ void display()
    	glRotatef(yangle, 0.0, 1.0, 0.0);
 	glRotatef(zangle, 0.0, 0.0, 1.0);
 	int k = -9;
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, player_texture);
+	// init_block(0, 0, 0, 1, 1, 1);
 
 	// Draw Objects
 	for (int i = 0; i < rows; ++i)
@@ -362,8 +363,12 @@ void display()
 	{
 		for (int j = 0; j < cols; ++j)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, grass_texture);
-			init_block(0,0,0,18,0,0);
+			if(maze[i][j] == ' ')
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, xdim, ydim, 0, GL_RGB, GL_UNSIGNED_BYTE, player_texture);
+				init_block(0,0,0,1,1,1);
+				// draw_cube(8,10,0,1);
+			}
 		}
 	}
 	glFlush();
@@ -389,7 +394,7 @@ void init()
    init_texture(grass, grass_texture, xdim, ydim);
    init_texture(rock, rock_texture, xdim, ydim);
    init_texture(wood, wood_texture, xdim, ydim);
-//    init_texture(player, player_texture, xdim, ydim);
+   init_texture(player, player_texture, xdim, ydim);
    glEnable(GL_TEXTURE_2D);
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -405,16 +410,16 @@ void keyboard(unsigned char key, int x, int y)
    if ((key == 'r') || (key == 'R'))
    {
       printf("Type x y z to decrease or X Y Z to increase ROTATION angles.\n");
-      mode = ROTATE;
+      mode = PLAYER;
    }
    else if ((key == 't') || (key == 'T'))
    {
       printf("Type x y z to decrease or X Y Z to increase TRANSLATION distance.\n");
-      mode = TRANSLATE;
+      mode = MAZE;
    }
 
    // Handle ROTATE
-   if (mode == ROTATE)
+   if (mode == MAZE)
    {
       if (key == 'x')
 	 xangle -= 5;
@@ -432,20 +437,20 @@ void keyboard(unsigned char key, int x, int y)
    }
 
    // Handle TRANSLATE
-   if (mode == TRANSLATE)
+   if (mode == PLAYER)
    {
       if (key == 'x')
-	 xpos -= 5;
+	 player_row -= 5;
       else if (key == 'y')
-	 ypos -= 5;
-      else if (key == 'z')
-	 zpos -= 5;
+	 player_col -= 5;
+    //   else if (key == 'z')
+	//  player_zpos -= 5;
       else if (key == 'X')
-	 xpos += 5;
+	 player_row += 5;
       else if (key == 'Y')
-	 ypos += 5;
-      else if (key == 'Z')
-	 zpos += 5;
+	 player_col += 5;
+    //   else if (key == 'Z')
+	//  player_zpos += 5;
       glutPostRedisplay();
    }
 }
@@ -465,6 +470,8 @@ void print_menu()
 	printf("   'Y' - rotate y-axis +5 degrees\n");
 	printf("   'z' - rotate z-axis -5 degrees\n");
 	printf("   'Z' - rotate z-axis +5 degrees\n");
+	// printf("\n");
+	printf("    Use the WASD keys to move the player around");
 }
 
 
