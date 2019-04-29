@@ -22,7 +22,7 @@
 #define YDIM 800
 unsigned char image[YDIM][XDIM][3];
 float position = 2;
-int nspheres = 10;
+int nspheres = 5;
 string mode = "phong";
 
 
