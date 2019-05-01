@@ -75,6 +75,7 @@ void ray_trace()
    // Perform ray tracing
    for (int y = 0; y < YDIM; y++)
    {
+      bool intersected = false;
       for (int x = 0; x < XDIM; x++)
       {
          // Clear image
@@ -94,7 +95,10 @@ void ray_trace()
 
          // Perform sphere intersection
          Point3D p;
+         Point3D intersect; //p2
+         Point3D tempPoint;
          Vector3D n;
+         Vector3D vector; //n2
          for(int i = 0; i < nspheres; i++) 
          {
             if(sphere[i].get_intersection(ray, p, n))
@@ -111,6 +115,17 @@ void ray_trace()
                if (mode == "phong")
                {
                   shader.SetObject(colors[i], 0.3, 0.4, 0.4, 10);
+                  for (int j = 0; j < nspheres; j++)
+                  {
+                     Ray3D ray2;
+                     ray2.set(p, dir);
+                     // check if point p coming off front sphere intersects with other sphere
+                     if(i != j && sphere[j].get_intersection(ray2, intersect, vector))
+                     {
+                        shader.SetObject(colors[i], 0.3, 0.0, 0.0, 10);
+                     }
+                  }
+                  
                   shader.GetShade(p, n, color);
                   image[y][x][0] = color.R;
                   image[y][x][1] = color.G;
